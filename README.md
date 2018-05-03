@@ -7,3 +7,5 @@ Usage:
         mergermarket/switch-role --account accountname --role-name admin --role-session-name $EMAIL \
     )"
     eval "$SAVE_XTRACE_STATUS"; unset SAVE_XTRACE_STATUS
+
+On Jenkins substitute `$EMAIL` with `$JOB_NAME` (so problems identified via cloudtrail logs can be tracked back to individual jobs). Characters that are invalid for role session names are replaced with hyphens, and it is is truncated to the maximum length of 64 characters.

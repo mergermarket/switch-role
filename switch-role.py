@@ -1,6 +1,7 @@
 import sys
 import argparse
 import boto3
+import re
 
 parser = argparse.ArgumentParser(
     description='Switch to IAM role on the command-line'
@@ -54,7 +55,7 @@ sts = boto3.client('sts')
 try:
     response = sts.assume_role(
         RoleArn=role_arn,
-        RoleSessionName=args.role_session_name
+        RoleSessionName=re.sub(r'[^\w=,.@-]', '-', args.role_session_name)[:64]
     )
 except Exception as e:
     print(f'could not assume role {role_arn}:\n\n{e}', file=sys.stderr)
