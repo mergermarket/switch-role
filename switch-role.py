@@ -16,7 +16,7 @@ parser.add_argument(
     '--account', help='name of the account'
 )
 parser.add_argument(
-    '--role-session-name', help='the session name', required=True
+    '--role-session-name', help='the session name', default=None
 )
 
 args = parser.parse_args()
@@ -52,10 +52,24 @@ else:
         invalid_args()
 
 sts = boto3.client('sts')
+
+if args.role_session_name is not None:
+    role_session_name = re.sub(r'[^\w=,.@-]', '-', args.role_session_name)[:64]
+else:
+    caller_identity = sts.get_caller_identity()
+    match = re.search(r':assumed-role/[^/]+/([^/]+)$', caller_identity['Arn'])
+    if match is None:
+        print(
+            f'--role-session-name is required for IAM user credentials',
+            file=sys.stderr
+        )
+        sys.exit(1)
+    role_session_name = match.group(1)
+
 try:
     response = sts.assume_role(
         RoleArn=role_arn,
-        RoleSessionName=re.sub(r'[^\w=,.@-]', '-', args.role_session_name)[:64]
+        RoleSessionName=role_session_name
     )
 except Exception as e:
     print(f'could not assume role {role_arn}:\n\n{e}', file=sys.stderr)
