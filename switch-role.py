@@ -18,6 +18,12 @@ parser.add_argument(
 parser.add_argument(
     '--role-session-name', help='the session name', default=None
 )
+parser.add_argument(
+    '--duration-seconds',
+    help='the session duration in seconds (default is 3600)',
+    default=3600,
+    type=int,
+)
 
 args = parser.parse_args()
 
@@ -48,7 +54,7 @@ if role_arn is None:
         sys.exit(1)
     role_arn = f'arn:aws:iam::{account_id}:role/{args.role_name}'
 else:
-    if args.rone_name is not None or args.account is not None:
+    if args.role_name is not None or args.account is not None:
         invalid_args()
 
 sts = boto3.client('sts')
@@ -69,7 +75,8 @@ else:
 try:
     response = sts.assume_role(
         RoleArn=role_arn,
-        RoleSessionName=role_session_name
+        RoleSessionName=role_session_name,
+        DurationSeconds=args.duration_seconds,
     )
 except Exception as e:
     print(f'could not assume role {role_arn}:\n\n{e}', file=sys.stderr)
